@@ -3,13 +3,15 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
     }
+    triggers {
+        // Poll the repository every 5 minutes (adjust as necessary)
+        pollSCM('H/5 * * * *')
     }
     stages {
         stage('Checkout SCM') {
             steps {
                 script {
-                    // Checkout the branch that triggered the build
-                    def branchName = env.BRANCH_NAME ?: 'Prod' // Default to Prod if BRANCH_NAME is not set
+                    def branchName = env.BRANCH_NAME ?: 'Prod'
                     checkout([$class: 'GitSCM', branches: [[name: "*/${branchName}"]],
                               doGenerateSubmoduleConfigurations: false, extensions: [],
                               userRemoteConfigs: [[url: 'https://github.com/N-Moorthy/CapstoneProject.git',
@@ -19,19 +21,21 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'echo "Building the project..."'
-                sh './build.sh'
-            }
-        }
-        stage('Test') {
-            steps {
-                sh 'echo "Running tests..."'
-                sh 'mvn test'
+                sh '''
+                    chmod +x build.sh
+                    ./build.sh
+                '''
             }
         }
         stage('Deploy') {
             steps {
-                sh './deploy.sh'          
+                sh '''
+                    chmod +x deploy.sh
+                    ./deploy.sh
+                '''
+            }
+        }
+    }
     post {
         always {
             echo 'Cleaning up...'
