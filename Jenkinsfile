@@ -21,7 +21,21 @@ pipeline {
                 sh './build.sh'
             }
         }
-
+	stage('Push to Docker Hub') {
+            steps {
+                script {
+                    if (env.BRANCH_NAME == 'Prod') {
+                        sh 'docker tag capimg:latest hanumith/prodcapstone:latest'
+                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                        sh 'docker push hanumith/prodcapstone:latest'
+                    } else if (env.BRANCH_NAME == 'Dev') {
+                        sh 'docker tag capimg:latest hanumith/devcapstone:latest'
+                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                        sh 'docker push hanumith/devcapstone:latest'
+                    }
+                }
+            }
+        }
         
 
         stage('Deploy') {
