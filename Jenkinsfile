@@ -2,13 +2,17 @@ pipeline {
     agent any
 
     environment {
+	BRANCH_NAME = 'Dev'
         DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: '${BRANCH_NAME}', url: 'https://github.com/N-Moorthy/CapstoneProject.git'
+                checkout([$class: 'GitSCM', branches: [[name: "*/${BRANCH_NAME}"]],
+                          doGenerateSubmoduleConfigurations: false, extensions: [],
+                          userRemoteConfigs: [[url: 'https://github.com/N-Moorthy/CapstoneProject.git',
+                                               credentialsId: '3c5cf833-313a-4c9a-bf52-3e2609df6860']]])
             }
         }
 
@@ -22,11 +26,11 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'Prod') {
-                        sh 'docker tag devops-build_web:latest hanumith/prodcapstone:latest'
+                        sh 'docker tag capimg:latest hanumith/prodcapstone:latest'
                         sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
                         sh 'docker push hanumith/prodcapstone:latest'
                     } else if (env.BRANCH_NAME == 'Dev') {
-                        sh 'docker tag devops-build_web:latest hanumith/devcapstone:latest'
+                        sh 'docker tag capimg:latest hanumith/devcapstone:latest'
                         sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
                         sh 'docker push hanumith/devcapstone:latest'
                     }
