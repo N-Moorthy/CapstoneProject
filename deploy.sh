@@ -1,25 +1,26 @@
 #!/bin/bash
 
-# Fetching the current Git branch
-GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo "Current Git Branch: ${GIT_BRANCH}"
+# Fetch current branch name
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# Stop and remove existing containers
-docker-compose down
+echo "Current Git Branch: $CURRENT_BRANCH"
 
-# Docker Prod step
-if [[ "${GIT_BRANCH}" == "Prod" ]]; then
-    ./build.sh
-    docker tag capimg hanumith/prodcapstone:v1
-    docker push hanumith/prodcapstone:v1
-
-elif [[ "${GIT_BRANCH}" == "Dev" ]]; then
-    ./build.sh
-    docker tag capimg hanumith/devcapstone:v1
-    docker push hanumith/devcapstone:v1
-
-else
-    echo "Deployment Failed: Unsupported branch ${GIT_BRANCH}"
+# Check if the branch is supported
+if [[ "$CURRENT_BRANCH" != "Prod" && "$CURRENT_BRANCH" != "Dev" ]]; then
+    echo "Deployment Failed: Unsupported branch $CURRENT_BRANCH"
+    exit 1
 fi
+
+# Continue with the deployment process
+docker-compose down
+docker-compose up -d --build
+
+if [ $? -ne 0 ]; then
+    echo "Deployment Failed"
+    exit 1
+else
+    echo "Deployment Succeeded"
+fi
+
 
 
