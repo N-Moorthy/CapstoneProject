@@ -11,7 +11,7 @@ pipeline {
          stage('Checkout SCM') {
             steps {
                 script {
-                    // Ensure BRANCH_NAME is set, defaulting to 'Dev' if not specified
+                    // Ensure BRANCH_NAME is set, defaulting to 'Prod' if not specified
                     def branch = BRANCH_NAME ?: 'Prod' 'Dev'
                     echo "Checking out branch: ${branch}"
                     
