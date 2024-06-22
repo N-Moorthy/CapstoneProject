@@ -3,15 +3,14 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS') // Your Docker Hub credentials ID
     }
-    stages {
+	stages {
         stage('Checkout SCM') {
             steps {
                 script {
-                    def branchName = env.BRANCH_NAME ?: 'Dev' // Default to Prod if BRANCH_NAME is not set
-                    echo "Checking out branch: ${branchName}"
-                    checkout([$class: 'GitSCM', branches: [[name: branchName]],
-                              userRemoteConfigs: [[url: 'https://github.com/N-Moorthy/CapstoneProject.git',
-                                                   credentialsId: '3c5cf833-313a-4c9a-bf52-3e2609df6860']]])
+                    checkout scm
+                    // Retrieve the branch name from the environment variable provided by Jenkins
+                    GIT_BRANCH_NAME = sh(script: 'echo ${env.BRANCH_NAME}', returnStdout: true).trim()
+                    echo "Checked out branch: ${GIT_BRANCH_NAME}"
                 }
             }
         }
