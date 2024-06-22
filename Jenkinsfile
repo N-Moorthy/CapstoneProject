@@ -16,12 +16,13 @@ pipeline {
             }
         }
 
-        stage('Build') {
+    stage('Build') {
             steps {
                 sh './build.sh'
             }
         }
-	stage('Push to Docker Hub') {
+
+    stage('Push to Docker Hub') {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'Prod') {
@@ -37,8 +38,7 @@ pipeline {
             }
         }
         
-
-        stage('Deploy') {
+     stage('Deploy') {
             steps {
                 sh './deploy.sh'
             }
