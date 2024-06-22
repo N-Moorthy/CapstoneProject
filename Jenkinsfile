@@ -2,13 +2,17 @@ pipeline {
     agent any
 
     environment {
+	BRANCH_NAME = 'Dev'
         DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                git branch: '${BRANCH_NAME}', url: 'https://github.com/N-Moorthy/CapstoneProject.git'
+                checkout([$class: 'GitSCM', branches: [[name: "*/${BRANCH_NAME}"]],
+                          doGenerateSubmoduleConfigurations: false, extensions: [],
+                          userRemoteConfigs: [[url: 'https://github.com/N-Moorthy/CapstoneProject.git',
+                                               credentialsId: '3c5cf833-313a-4c9a-bf52-3e2609df6860']]])
             }
         }
 
