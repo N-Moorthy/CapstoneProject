@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Fetch current branch name
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$CURRENT_BRANCH" == "HEAD" ]]; then
+	CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+fi
 
 echo "Current Git Branch: $CURRENT_BRANCH"
 
