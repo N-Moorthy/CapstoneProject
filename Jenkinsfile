@@ -1,28 +1,39 @@
 pipeline {
     agent any
-
     environment {
-	BRANCH_NAME = 'Dev' 'Prod'
         DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
+	BRANCH_NAME = 'Dev'
+        GIT_REPO_URL = 'https://github.com/N-Moorthy/CapstoneProject.git'
+        GIT_CREDENTIALS_ID = '3c5cf833-313a-4c9a-bf52-3e2609df6860'
     }
-
+    
     stages {
-        stage('Checkout SCM') {
+         stage('Checkout SCM') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: "*/${BRANCH_NAME}"]],
-                          doGenerateSubmoduleConfigurations: false, extensions: [],
-                          userRemoteConfigs: [[url: 'https://github.com/N-Moorthy/CapstoneProject.git',
-                                               credentialsId: '3c5cf833-313a-4c9a-bf52-3e2609df6860']]])
+                script {
+                    // Ensure BRANCH_NAME is set, defaulting to 'Dev' if not specified
+                    def branch = BRANCH_NAME ?: 'Dev'
+                    echo "Checking out branch: ${branch}"
+                    
+                    // Checkout SCM using Git plugin
+                    checkout([$class: 'GitSCM',
+                              branches: [[name: "*/${branch}"]],
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions: [],
+                              userRemoteConfigs: [[url: GIT_REPO_URL,
+                                                   credentialsId: GIT_CREDENTIALS_ID]]])
+                }
             }
         }
-
-    stage('Build') {
+        stage('Build') {
             steps {
-                sh './build.sh'
+                script {
+                    sh 'chmod +x build.sh'
+                    sh './build.sh'
+                }
             }
         }
-
-    stage('Push to Docker Hub') {
+	stage('Push to Docker Hub') {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'Prod') {
@@ -37,25 +48,26 @@ pipeline {
                 }
             }
         }
-        
-     stage('Deploy') {
+        stage('Deploy') {
             steps {
-                sh './deploy.sh'
+                script {
+                    sh 'chmod +x deploy.sh'
+                    sh "BRANCH_NAME=${GIT_BRANCH_NAME} ./deploy.sh"
+                }
             }
         }
     }
-
     post {
         always {
-            echo 'Cleaning up...'
-            sh 'docker logout'
-        }
-        success {
-            echo 'Deployment succeeded!'
+            script {
+                echo 'Cleaning up...'
+                sh 'docker logout'
+            }
         }
         failure {
-            echo 'Deployment failed.'
+            script {
+                echo 'Deployment failed.'
+            }
         }
     }
 }
-

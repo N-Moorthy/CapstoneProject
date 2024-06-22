@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Fetching the current Git branch
-BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+BRANCH_NAME=${BRANCH_NAME:-$(git rev-parse --abbrev-ref HEAD)}
 echo "Current Git Branch: ${BRANCH_NAME}"
 
 # Stop and remove existing containers
