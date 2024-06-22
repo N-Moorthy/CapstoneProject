@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
-	BRANCH_NAME = 'Dev'
+	BRANCH_NAME = 'Prod' 'Dev'
         GIT_REPO_URL = 'https://github.com/N-Moorthy/CapstoneProject.git'
         GIT_CREDENTIALS_ID = '3c5cf833-313a-4c9a-bf52-3e2609df6860'
     }
@@ -12,7 +12,7 @@ pipeline {
             steps {
                 script {
                     // Ensure BRANCH_NAME is set, defaulting to 'Dev' if not specified
-                    def branch = BRANCH_NAME ?: 'Dev'
+                    def branch = BRANCH_NAME ?: 'Prod' 'Dev'
                     echo "Checking out branch: ${branch}"
                     
                     // Checkout SCM using Git plugin
@@ -51,6 +51,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
+		    sh 'docker-compose down'	
                     sh 'chmod +x deploy.sh'
                     sh "BRANCH_NAME=${GIT_BRANCH_NAME} ./deploy.sh"
                 }
