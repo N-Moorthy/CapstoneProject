@@ -42,7 +42,7 @@ pipeline {
             steps {
                 script {
                     sh 'chmod +x deploy.sh'
-                    sh './deploy.sh'
+                    sh "BRANCH_NAME=${GIT_BRANCH_NAME} ./deploy.sh"
                 }
             }
         }
