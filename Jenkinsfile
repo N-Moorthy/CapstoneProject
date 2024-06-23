@@ -1,5 +1,6 @@
 pipeline {
     agent any
+    
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockercreds')
         GIT_REPO_URL = 'https://github.com/N-Moorthy/CapstoneProject.git'
@@ -24,6 +25,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build') {
             steps {
                 script {
@@ -32,40 +34,54 @@ pipeline {
                 }
             }
         }
+        
         stage('Push to Docker Hub') {
+            when {
+                expression {
+                    // Only push Docker images for 'Prod' or 'Dev' branches
+                    env.BRANCH_NAME == 'Prod' || env.BRANCH_NAME == 'Dev'
+                }
+            }
             steps {
                 script {
                     echo "Branch name is: ${env.BRANCH_NAME}"
+                    
+                    // Docker push based on branch
+                    def dockerRepo
                     if (env.BRANCH_NAME == 'Prod') {
-                        echo 'Pushing to Prod repository'
-                        sh '''
-                            docker tag capimg:latest hanumith/prodcapstone:latest
-                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                            docker push hanumith/prodcapstone:latest
-                        '''
+                        dockerRepo = 'hanumith/prodcapstone'
                     } else if (env.BRANCH_NAME == 'Dev') {
-                        echo 'Pushing to Dev repository'
-                        sh '''
-                            docker tag capimg:latest hanumith/devcapstone:latest
-                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                            docker push hanumith/devcapstone:latest
-                        '''
+                        dockerRepo = 'hanumith/devcapstone'
                     } else {
-                        echo 'Branch is not Prod or Dev. Skipping Docker push.'
+                        error "Unsupported branch for Docker push: ${env.BRANCH_NAME}"
                     }
+                    
+                    sh '''
+                        docker tag capimg:latest ${dockerRepo}:latest
+                        echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                        docker push ${dockerRepo}:latest
+                    '''
                 }
             }
         }
+        
         stage('Deploy') {
+            when {
+                expression {
+                    // Only deploy if branch is 'Prod' or 'Dev'
+                    env.BRANCH_NAME == 'Prod' || env.BRANCH_NAME == 'Dev'
+                }
+            }
             steps {
                 script {
-                    sh 'docker-compose down'  
+                    sh 'docker-compose down'
                     sh 'chmod +x deploy.sh'
                     sh "./deploy.sh ${env.BRANCH_NAME}"
                 }
             }
         }
     }
+    
     post {
         always {
             script {
@@ -73,6 +89,7 @@ pipeline {
                 sh 'docker logout'
             }
         }
+        
         failure {
             script {
                 echo 'Deployment failed.'
