@@ -1,8 +1,13 @@
-version: '3.8'
-
+version: '3'
 services:
   web:
-    image: capimg
+    image: capimg:latest
     ports:
-      - "3000:80"
+      - "80:80"
+    volumes:
+      - ./path/to/local/files:/usr/share/nginx/html   # Example volume binding
 
+networks:
+  default:
+    external:
+      name: capstone-project_default
