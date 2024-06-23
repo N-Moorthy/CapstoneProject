@@ -1,6 +1,6 @@
-
 pipeline {
     agent any
+    
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockercreds')
         GIT_REPO_URL = 'https://github.com/N-Moorthy/CapstoneProject.git'
@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 script {
-                    // Ensure BRANCH_NAME is set, defaulting to 'Prod' if not specified
+                    // Ensure BRANCH_NAME is set, defaulting to 'Dev' if not specified
                     def branch = env.BRANCH_NAME ?: 'Dev'
                     echo "Checking out branch: ${branch}"
                     
@@ -25,6 +25,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build') {
             steps {
                 script {
@@ -33,6 +34,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Push to Docker Hub') {
             steps {
                 script {
@@ -75,6 +77,9 @@ pipeline {
                     sh "./deploy.sh ${env.BRANCH_NAME}"
                 }
             }
+        }
+    }
+    
     post {
         always {
             script {
@@ -82,6 +87,7 @@ pipeline {
                 sh 'docker logout'
             }
         }
+        
         failure {
             script {
                 echo 'Deployment failed.'
