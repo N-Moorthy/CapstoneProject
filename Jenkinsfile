@@ -25,7 +25,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build') {
             steps {
                 script {
@@ -33,38 +33,29 @@ pipeline {
                     sh './build.sh'
                 }
             }
-        }
+        } 
         
-        stage('Push to Docker Hub') {
-            when {
-                expression {
-                    // Only push Docker images for 'Prod' or 'Dev' branches
-                    env.BRANCH_NAME == 'Prod' || env.BRANCH_NAME == 'Dev'
-                }
-            }
+     stage('Push to Docker Hub') {
             steps {
                 script {
                     echo "Branch name is: ${env.BRANCH_NAME}"
-                    
-                    // Docker push based on branch
-                    def dockerRepo
-                    def dockerTag
                     if (env.BRANCH_NAME == 'Prod') {
-                        dockerRepo = 'hanumith/prodcapstone'
-                        dockerTag = 'latest'
+                        echo 'Pushing to Prod repository'
+                        sh '''
+                            docker tag capimg:latest hanumith/prodcapstone:latest
+                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                            docker push hanumith/prodcapstone:latest
+                        '''
                     } else if (env.BRANCH_NAME == 'Dev') {
-                        dockerRepo = 'hanumith/devcapstone'
-                        dockerTag = 'latest'
+                        echo 'Pushing to Dev repository'
+                        sh '''
+                            docker tag capimg:latest hanumith/devcapstone:latest
+                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                            docker push hanumith/devcapstone:latest
+                        '''
                     } else {
-                        error "Unsupported branch for Docker push: ${env.BRANCH_NAME}"
+                        echo 'Branch is not Prod or Dev. Skipping Docker push.'
                     }
-                    
-                    // Tag and push Docker image
-                    sh '''
-                        docker tag capimg:latest ${dockerRepo}:${dockerTag}
-                        echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                        docker push ${dockerRepo}:${dockerTag}
-                    '''
                 }
             }
         }
