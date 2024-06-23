@@ -35,7 +35,7 @@ pipeline {
             }
         } 
         
-     stage('Push to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
                     echo "Branch name is: ${env.BRANCH_NAME}"
@@ -69,7 +69,10 @@ pipeline {
             }
             steps {
                 script {
+                    // Clean up previous deployments
                     sh 'docker-compose down'
+                    
+                    // Ensure deploy.sh is executable and run it with branch name argument
                     sh 'chmod +x deploy.sh'
                     sh "./deploy.sh ${env.BRANCH_NAME}"
                 }
