@@ -48,18 +48,22 @@ pipeline {
                     
                     // Docker push based on branch
                     def dockerRepo
+                    def dockerTag
                     if (env.BRANCH_NAME == 'Prod') {
                         dockerRepo = 'hanumith/prodcapstone'
+                        dockerTag = 'latest'
                     } else if (env.BRANCH_NAME == 'Dev') {
                         dockerRepo = 'hanumith/devcapstone'
+                        dockerTag = 'latest'
                     } else {
                         error "Unsupported branch for Docker push: ${env.BRANCH_NAME}"
                     }
                     
+                    // Tag and push Docker image
                     sh '''
-                        docker tag capimg:latest ${dockerRepo}:latest
+                        docker tag capimg:latest ${dockerRepo}:${dockerTag}
                         echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                        docker push ${dockerRepo}:latest
+                        docker push ${dockerRepo}:${dockerTag}
                     '''
                 }
             }
