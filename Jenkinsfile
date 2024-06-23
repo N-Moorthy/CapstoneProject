@@ -16,7 +16,7 @@ pipeline {
                     
                     // Checkout SCM using Git plugin
                     checkout([$class: 'GitSCM',
-                              branches: [[name: "*/${branch}"]],
+                              branches: [[name: "${branch}"]],
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [],
                               userRemoteConfigs: [[url: GIT_REPO_URL,
