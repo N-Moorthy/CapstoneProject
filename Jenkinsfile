@@ -36,29 +36,29 @@ pipeline {
         }
         
         stage('Push to Docker Hub') {
-            steps {
-                script {
-                    echo "Branch name is: ${env.BRANCH_NAME}"
-                    if (env.BRANCH_NAME == 'Prod') {
-                        echo 'Pushing to Prod repository'
-                        sh '''
-                            docker tag capimg:latest hanumith/prodcapstone:latest
-                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                            docker push hanumith/prodcapstone:latest
-                        '''
-                    } else if (env.BRANCH_NAME == 'Dev') {
-                        echo 'Pushing to Dev repository'
-                        sh '''
-                            docker tag capimg:latest hanumith/devcapstone:latest
-                            echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
-                            docker push hanumith/devcapstone:latest
-                        '''
-                    } else {
-                        echo 'Branch is not Prod or Dev. Skipping Docker push.'
-                    }
-                }
+    steps {
+        script {
+            echo "Branch name is: ${env.BRANCH_NAME}"
+            if (env.BRANCH_NAME == 'Prod') {
+                echo 'Pushing to Prod repository'
+                sh '''
+                    docker tag capimg:latest hanumith/prodcapstone:latest
+                    echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                    docker push hanumith/prodcapstone:latest
+                '''
+            } else if (env.BRANCH_NAME == 'Dev') {
+                echo 'Pushing to Dev repository'
+                sh '''
+                    docker tag capimg:latest hanumith/devcapstone:latest
+                    echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                    docker push hanumith/devcapstone:latest
+                '''
+            } else {
+                echo 'Branch is not Prod or Dev. Skipping Docker push.'
             }
         }
+    }
+}
         
         stage('Deploy') {
             when {
