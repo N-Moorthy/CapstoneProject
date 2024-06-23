@@ -1,18 +1,17 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('DOCKER_HUB_CREDENTIALS')
-	BRANCH_NAME = 'Prod' 'Dev'
+        DOCKER_HUB_CREDENTIALS = credentials('dockercreds')
         GIT_REPO_URL = 'https://github.com/N-Moorthy/CapstoneProject.git'
-        GIT_CREDENTIALS_ID = '3c5cf833-313a-4c9a-bf52-3e2609df6860'
+        GIT_CREDENTIALS_ID = 'gitcreds'
     }
     
     stages {
-         stage('Checkout SCM') {
+        stage('Checkout SCM') {
             steps {
                 script {
                     // Ensure BRANCH_NAME is set, defaulting to 'Prod' if not specified
-                    def branch = BRANCH_NAME ?: 'Dev' 
+                    def branch = env.BRANCH_NAME ?: 'Prod'
                     echo "Checking out branch: ${branch}"
                     
                     // Checkout SCM using Git plugin
@@ -33,27 +32,23 @@ pipeline {
                 }
             }
         }
-	stage('Push to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'Prod') {
-                        sh 'docker tag capimg:latest hanumith/prodcapstone:latest'
-                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
-                        sh 'docker push hanumith/prodcapstone:latest'
-                    } else if (env.BRANCH_NAME == 'Dev') {
-                        sh 'docker tag capimg:latest hanumith/devcapstone:latest'
-                        sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
-                        sh 'docker push hanumith/devcapstone:latest'
-                    }
+                    def imageName = (env.BRANCH_NAME == 'Prod') ? 'hanumith/prodcapstone:latest' : 'hanumith/devcapstone:latest'
+                    
+                    sh "docker tag capimg:latest ${imageName}"
+                    sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+                    sh "docker push ${imageName}"
                 }
             }
         }
         stage('Deploy') {
             steps {
                 script {
-		    sh 'docker-compose down'	
+                    sh 'docker-compose down'  
                     sh 'chmod +x deploy.sh'
-                    sh "BRANCH_NAME=${GIT_BRANCH_NAME} ./deploy.sh"
+                    sh "./deploy.sh ${env.BRANCH_NAME}"
                 }
             }
         }
