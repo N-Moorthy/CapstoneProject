@@ -1,5 +1,6 @@
 pipeline {
     agent any
+    
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockercreds')
         GIT_REPO_URL = 'https://github.com/N-Moorthy/CapstoneProject.git'
@@ -10,8 +11,8 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 script {
-                    // Ensure BRANCH_NAME is set, defaulting to 'Prod' if not specified
-                    def branch = env.BRANCH_NAME ?: 'Prod'
+                    // Ensure BRANCH_NAME is set, defaulting to 'Dev' if not specified
+                    def branch = env.BRANCH_NAME ?: 'Dev'
                     echo "Checking out branch: ${branch}"
                     
                     // Checkout SCM using Git plugin
@@ -24,6 +25,7 @@ pipeline {
                 }
             }
         }
+        
         stage('Build') {
             steps {
                 script {
@@ -32,27 +34,52 @@ pipeline {
                 }
             }
         }
+        
         stage('Push to Docker Hub') {
-            steps {
-                script {
-                    def imageName = (env.BRANCH_NAME == 'Prod') ? 'hanumith/prodcapstone:latest' : 'hanumith/devcapstone:latest'
-                    
-                    sh "docker tag capimg:latest ${imageName}"
-                    sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
-                    sh "docker push ${imageName}"
-                }
+    steps {
+        script {
+            echo "Branch name is: ${env.BRANCH_NAME}"
+            if (env.BRANCH_NAME == 'Prod') {
+                echo 'Pushing to Prod repository'
+                sh '''
+                    docker tag capimg:latest hanumith/prodcapstone:latest
+                    echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                    docker push hanumith/prodcapstone:latest
+                '''
+            } else if (env.BRANCH_NAME == 'Dev') {
+                echo 'Pushing to Dev repository'
+                sh '''
+                    docker tag capimg:latest hanumith/devcapstone:latest
+                    echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin
+                    docker push hanumith/devcapstone:latest
+                '''
+            } else {
+                echo 'Branch is not Prod or Dev. Skipping Docker push.'
             }
         }
+    }
+}
+        
         stage('Deploy') {
+            when {
+                expression {
+                    // Only deploy if branch is 'Prod' or 'Dev'
+                    env.BRANCH_NAME == 'Prod' || env.BRANCH_NAME == 'Dev'
+                }
+            }
             steps {
                 script {
-                    sh 'docker-compose down'  
+                    // Clean up previous deployments
+                    sh 'docker-compose down'
+                    
+                    // Ensure deploy.sh is executable and run it with branch name argument
                     sh 'chmod +x deploy.sh'
                     sh "./deploy.sh ${env.BRANCH_NAME}"
                 }
             }
         }
     }
+    
     post {
         always {
             script {
@@ -60,6 +87,7 @@ pipeline {
                 sh 'docker logout'
             }
         }
+        
         failure {
             script {
                 echo 'Deployment failed.'
@@ -67,3 +95,4 @@ pipeline {
         }
     }
 }
+
