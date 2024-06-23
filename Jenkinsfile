@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout SCM') {
             steps {
                 script {
-                    // Ensure BRANCH_NAME is set, defaulting to 'Prod' if not specified
+                    // Ensure BRANCH_NAME is set, defaulting to 'Dev' if not specified
                     def branch = env.BRANCH_NAME ?: 'Dev'
                     echo "Checking out branch: ${branch}"
                     
@@ -35,14 +35,19 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
+                    echo "Branch name is: ${env.BRANCH_NAME}"
                     if (env.BRANCH_NAME == 'Prod') {
+                        echo 'Pushing to Prod repository'
                         sh 'docker tag capimg:latest hanumith/prodcapstone:latest'
                         sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
                         sh 'docker push hanumith/prodcapstone:latest'
                     } else if (env.BRANCH_NAME == 'Dev') {
+                        echo 'Pushing to Dev repository'
                         sh 'docker tag capimg:latest hanumith/devcapstone:latest'
                         sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
                         sh 'docker push hanumith/devcapstone:latest'
+                    } else {
+                        echo 'Branch is not Prod or Dev. Skipping Docker push.'
                     }
                 }
             }
