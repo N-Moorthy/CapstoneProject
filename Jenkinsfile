@@ -36,11 +36,11 @@ pipeline {
             steps {
                 script {
                     if (env.BRANCH_NAME == 'Prod') {
-                        sh 'docker tag capimg:latest hanumith/prodcapstone:late>
+                        sh 'docker tag capimg:latest hanumith/prodcapstone:latest
                         sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u >
                         sh 'docker push hanumith/prodcapstone:latest'
                     } else if (env.BRANCH_NAME == 'Dev') {
-                        sh 'docker tag capimg:latest hanumith/devcapstone:lates>
+                        sh 'docker tag capimg:latest hanumith/devcapstone:latest
                         sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u >
                         sh 'docker push hanumith/devcapstone:latest'
                     }
