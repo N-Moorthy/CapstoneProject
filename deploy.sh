@@ -7,6 +7,9 @@ echo "Current Git Branch: ${BRANCH_NAME}"
 # Stop and remove existing containers
 docker-compose down
 
+# Docker login
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
 # Docker Prod step
 if [[ "${BRANCH_NAME}" == "Prod" ]]; then
     ./build.sh
