@@ -8,6 +8,11 @@ echo "Current Git Branch: ${BRANCH_NAME}"
 # Stop and remove existing containers
 docker-compose down
 
+# Remove unused Docker resources
+docker system prune -f
+docker volume prune -f
+docker network prune -f
+
 # Docker login
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
