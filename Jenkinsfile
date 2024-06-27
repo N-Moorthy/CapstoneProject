@@ -25,7 +25,7 @@ pipeline {
                     
                     // Ensure deploy.sh is executable and run it with branch name argument
                     sh 'chmod +x deploy.sh'
-                    sh "./deploy.sh ${env.BRANCH_NAME}"
+                    sh "./deploy.sh ${env.GIT_BRANCH}"
                 }
             }
         }
