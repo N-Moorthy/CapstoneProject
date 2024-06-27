@@ -14,21 +14,6 @@ pipeline {
                 }
             }
         }
-        
-        stage('Push to Docker Hub') {
-            when {
-                expression {
-                    // Push to Docker Hub only for Prod or Dev branches
-                    env.BRANCH_NAME == 'Prod' || env.BRANCH_NAME == 'Dev'
-                }
-            }
-        stage('Deploy') {
-            when {
-                expression {
-                    // Deploy only if branch is 'Prod' or 'Dev'
-                    env.BRANCH_NAME == 'Prod' || env.BRANCH_NAME == 'Dev'
-                }
-            }
             steps {
                 script {
                     // Clean up previous deployments
